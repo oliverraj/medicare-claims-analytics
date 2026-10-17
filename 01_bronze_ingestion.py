@@ -23,13 +23,26 @@ print("Total rows:", beneficiary_raw.count())
 print("Total columns:", len(beneficiary_raw.columns))
 
 beneficiary_raw.printSchema()
+print("Total rows:", beneficiary_raw.count())
+print("Total columns:", len(beneficiary_raw.columns))
+
+beneficiary_raw.printSchema()
+
+from pyspark.sql import functions as F
+
+beneficiary_bronze = (
+    beneficiary_raw
+    .withColumn("source_file", F.lit(beneficiary_path))
+    .withColumn("ingestion_timestamp", F.current_timestamp())
+    .withColumn("data_year", F.lit(2008))
+)
 
 # COMMAND ----------
 
 beneficiary_bronze.createOrReplaceTempView("beneficiary_bronze_staging")
 
 spark.sql("""
-    CREATE TABLE workspace.default.bronze_beneficiary_2008
+    CREATE OR REPLACE TABLE workspace.default.bronze_beneficiary_2008
     USING DELTA
     AS SELECT * FROM beneficiary_bronze_staging
 """)
@@ -73,7 +86,7 @@ inpatient_bronze = (
 inpatient_bronze.createOrReplaceTempView("inpatient_bronze_staging")
 
 spark.sql("""
-    CREATE TABLE workspace.default.bronze_inpatient
+    CREATE OR REPLACE TABLE workspace.default.bronze_inpatient
     USING DELTA
     AS SELECT * FROM inpatient_bronze_staging
 """)
